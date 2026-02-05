@@ -3,7 +3,7 @@ name: Publicacion Automatica
 on:
   push:
     tags:
-      - "v*" # Se activa cuando creas una versión como v1.0
+      - "v*"
 
 permissions:
   contents: write
@@ -33,11 +33,19 @@ jobs:
           flutter config --enable-windows-desktop
           flutter build windows --release
 
+      - name: Empaquetar Windows (Release completo)
+        shell: pwsh
+        run: |
+          $src = "build\windows\x64\runner\Release"
+          $zip = "EcoTracker-windows.zip"
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path "$src\*" -DestinationPath $zip
+
       - name: Crear Release y Subir Archivos
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             build/app/outputs/flutter-apk/app-release.apk
-            build/windows/x64/runner/Release/*.exe
+            EcoTracker-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
